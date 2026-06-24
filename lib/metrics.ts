@@ -8,6 +8,8 @@ export interface Kpis {
   avancePromedio: number; // 0..1, ponderado por story points
   avanceSimple: number; // 0..1, promedio simple
   storyPoints: number;
+  devPoints: number; // puntos de desarrollo (Story Points)
+  qaPoints: number; // puntos de QA (Effort QA)
   cycleTimePromedio: number;
   enDevolucion: number;
   estancadas: number;
@@ -40,9 +42,26 @@ export interface BottleneckItem {
 export interface ResponsableItem {
   responsable: string;
   count: number;
-  storyPoints: number;
+  storyPoints: number; // puntos de desarrollo
+  qaPoints: number; // puntos de QA
   avance: number; // promedio simple 0..1
   cumplidas: number;
+}
+
+// Puntos de función desglosados en Desarrollo (Story Points) vs QA (Effort QA).
+export interface PuntosSplit {
+  label: string; // responsable o fase
+  devPoints: number;
+  qaPoints: number;
+  total: number;
+}
+
+export interface PuntosFuncion {
+  totalDev: number;
+  totalQA: number;
+  total: number;
+  porResponsable: PuntosSplit[];
+  porFase: PuntosSplit[];
 }
 
 export interface Alerta {
@@ -61,6 +80,7 @@ export function computeKpis(hu: HU[]): Kpis {
   const totalHU = hu.length;
   const cumplidas = hu.filter((h) => h.cumplida).length;
   const sp = hu.reduce((a, h) => a + (h.storyPoints ?? 0), 0);
+  const qa = hu.reduce((a, h) => a + (h.effortQA ?? 0), 0);
 
   const avanceSimple = totalHU ? hu.reduce((a, h) => a + h.pctActual, 0) / totalHU : 0;
   const spTot = hu.reduce((a, h) => a + (h.storyPoints ?? 0), 0);
@@ -83,10 +103,51 @@ export function computeKpis(hu: HU[]): Kpis {
     avancePromedio: avancePonderado,
     avanceSimple,
     storyPoints: sp,
+    devPoints: sp,
+    qaPoints: qa,
     cycleTimePromedio,
     enDevolucion,
     estancadas,
   };
+}
+
+export function computePuntosFuncion(hu: HU[]): PuntosFuncion {
+  let totalDev = 0;
+  let totalQA = 0;
+
+  const byResp = new Map<string, { dev: number; qa: number }>();
+  const byFase = new Map<Fase, { dev: number; qa: number }>();
+  for (const f of FASES) byFase.set(f, { dev: 0, qa: 0 });
+
+  for (const h of hu) {
+    const dev = h.storyPoints ?? 0;
+    const qa = h.effortQA ?? 0;
+    totalDev += dev;
+    totalQA += qa;
+
+    const r = byResp.get(h.responsable) ?? { dev: 0, qa: 0 };
+    r.dev += dev;
+    r.qa += qa;
+    byResp.set(h.responsable, r);
+
+    const e = findEtapa(h.etapaActual);
+    if (e) {
+      const a = byFase.get(e.fase)!;
+      a.dev += dev;
+      a.qa += qa;
+    }
+  }
+
+  const porResponsable: PuntosSplit[] = Array.from(byResp.entries())
+    .map(([label, v]) => ({ label, devPoints: v.dev, qaPoints: v.qa, total: v.dev + v.qa }))
+    .sort((a, b) => b.total - a.total);
+
+  const porFase: PuntosSplit[] = FASES.map((f) => {
+    const v = byFase.get(f)!;
+    return { label: f, devPoints: v.dev, qaPoints: v.qa, total: v.dev + v.qa };
+  }).filter((p) => p.total > 0);
+
+  return { totalDev, totalQA, total: totalDev + totalQA, porResponsable, porFase };
 }
 
 export function computePipeline(hu: HU[]): PipelineItem[] {
@@ -143,11 +204,12 @@ export function computeBottlenecks(hu: HU[]): BottleneckItem[] {
 }
 
 export function computeResponsables(hu: HU[]): ResponsableItem[] {
-  const acc = new Map<string, { count: number; sp: number; avance: number; cumplidas: number }>();
+  const acc = new Map<string, { count: number; sp: number; qa: number; avance: number; cumplidas: number }>();
   for (const h of hu) {
-    const cur = acc.get(h.responsable) ?? { count: 0, sp: 0, avance: 0, cumplidas: 0 };
+    const cur = acc.get(h.responsable) ?? { count: 0, sp: 0, qa: 0, avance: 0, cumplidas: 0 };
     cur.count += 1;
     cur.sp += h.storyPoints ?? 0;
+    cur.qa += h.effortQA ?? 0;
     cur.avance += h.pctActual;
     cur.cumplidas += h.cumplida ? 1 : 0;
     acc.set(h.responsable, cur);
@@ -157,6 +219,7 @@ export function computeResponsables(hu: HU[]): ResponsableItem[] {
       responsable,
       count: a.count,
       storyPoints: a.sp,
+      qaPoints: a.qa,
       avance: a.count ? a.avance / a.count : 0,
       cumplidas: a.cumplidas,
     }))

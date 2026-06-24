@@ -20,14 +20,33 @@ Tablero web de **seguimiento de Historias de Usuario (HU)** para el proceso de d
 
 ## Vistas
 
-1. **Resumen / KPIs** — totales, cumplimiento, story points, cycle time promedio.
+1. **Resumen / KPIs** — totales, cumplimiento, puntos (Dev/QA), cycle time promedio.
 2. **Pipeline del proceso** — distribución de HU por las 17 etapas.
-3. **Cuellos de botella** — cycle time por etapa.
-4. **Carga por responsable** — HU y story points por persona.
-5. **Detalle de HU** — tabla filtrable con barra de progreso.
-6. **Alertas** — HU en devolución (puntaje negativo) y estancadas.
+3. **Puntos de función · Desarrollo vs QA** — esfuerzo separado visualmente: Story Points (desarrollo) y Effort QA, con totales, proporción y desglose por responsable y por fase.
+4. **Cuellos de botella** — cycle time por etapa.
+5. **Carga por responsable** — HU, puntos Dev, puntos QA y avance por persona.
+6. **Detalle de HU** — tabla filtrable y ordenable, con columnas Dev y QA y barra de progreso.
+7. **Alertas** — HU en devolución (puntaje negativo) y estancadas.
 
-Filtros globales por **fase**, **responsable** y **estado de cumplimiento**.
+### Puntos de función: Desarrollo vs QA
+
+El esfuerzo se divide en dos dimensiones tomadas del archivo maestro y se muestran **separadas y con color propio** en todo el tablero:
+
+- 🟦 **Desarrollo** → columna `Story Points` (azul).
+- 🟧 **QA** → columna `Effort (QA)` (ámbar).
+
+### Filtros dinámicos
+
+Filtros globales que recalculan todo el tablero en vivo:
+
+- **Fase** del proceso · **Responsable** · **Estado** (cumplidas / pendientes).
+- **Rango de fecha de inicio (t0)** — acota las HU por su fecha de inicio del cycle time.
+
+### Acceso para actualizar
+
+- Botón **Actualizar datos** en la cabecera para cargar un nuevo corte cuando cambie el `archivo_maestro.xlsx`.
+- El último corte cargado **se guarda en el navegador** (localStorage) y se restaura al volver a abrir, con sello de **última actualización**.
+- Botón **Limpiar** para descartar el corte guardado.
 
 ## Desarrollo local
 
@@ -43,13 +62,35 @@ npm run build
 npm run start
 ```
 
-## Despliegue en Vercel
+## GitHub + automatización
+
+El repositorio incluye un workflow de **GitHub Actions** (`.github/workflows/ci.yml`) que en cada `push`/`pull_request` a `main`:
+
+1. Instala dependencias con `npm ci`.
+2. Compila con `npm run build` (falla el check si el build se rompe).
+
+### Subir a GitHub por primera vez
+
+```bash
+# autenticarse (una sola vez)
+gh auth login
+
+# crear el repo remoto y empujar (desde la carpeta balu-tablero/)
+gh repo create balu-tablero --private --source=. --remote=origin --push
+```
+
+> Sin `gh`: crea el repo vacío en github.com y luego
+> `git remote add origin <url>` + `git push -u origin main`.
+
+## Despliegue en Vercel (automático)
 
 El proyecto está listo para Vercel sin configuración adicional:
 
-1. Sube el repositorio a GitHub (o conecta el directorio).
-2. En Vercel: **New Project** → importa el repo → framework detectado: **Next.js**.
-3. Deploy. No se requieren variables de entorno.
+1. En [vercel.com](https://vercel.com) → **Add New… → Project** → importa el repo de GitHub.
+2. Framework detectado automáticamente: **Next.js**. No se requieren variables de entorno.
+3. **Deploy**.
+
+A partir de ahí, la integración Git de Vercel **despliega solo**: cada `push` a `main` genera un deploy de producción y cada PR un *preview deploy*. No hace falta CLI ni secretos.
 
 ## Estructura
 

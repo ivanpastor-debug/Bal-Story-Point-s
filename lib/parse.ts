@@ -18,6 +18,8 @@ const HEADER_MAP: Record<string, keyof HU | "ignore"> = {
   "effort (qa)": "effortQA",
   "cycle time total (dias)": "cycleTotalDias",
   "cycle time etapa actual (dias)": "cycleEtapaActualDias",
+  "fecha t0 (inicio cycle time)": "fechaInicio",
+  "fecha cambio etapa actual": "fechaCambioEtapa",
 };
 
 function toNum(v: unknown): number | null {
@@ -89,6 +91,8 @@ export function parseWorkbook(buf: ArrayBuffer): Dataset {
       cycleTotalDias: toNum(get("cycleTotalDias")),
       cycleEtapaActualDias: toNum(get("cycleEtapaActualDias")),
       fechaCorte: fmtDate(get("fechaCorte")),
+      fechaInicio: fmtDate(get("fechaInicio")),
+      fechaCambioEtapa: fmtDate(get("fechaCambioEtapa")),
       cyclePorEtapa,
     });
   }
@@ -98,5 +102,9 @@ export function parseWorkbook(buf: ArrayBuffer): Dataset {
   const sprints = Array.from(new Set(hu.map((h) => h.sprint).filter(Boolean))).sort();
   const fechaCorte = hu[0].fechaCorte || "";
 
-  return { fechaCorte, sprints, hu };
+  const fechas = hu.map((h) => h.fechaInicio).filter(Boolean).sort();
+  const minFecha = fechas[0] ?? "";
+  const maxFecha = fechas[fechas.length - 1] ?? "";
+
+  return { fechaCorte, sprints, hu, minFecha, maxFecha };
 }

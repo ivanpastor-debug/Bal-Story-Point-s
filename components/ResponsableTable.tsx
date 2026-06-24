@@ -9,7 +9,8 @@ export default function ResponsableTable({ data }: { data: ResponsableItem[] }) 
           <tr>
             <th className="py-2 pr-2 font-medium">Responsable</th>
             <th className="py-2 px-2 font-medium">HU</th>
-            <th className="py-2 px-2 font-medium">SP</th>
+            <th className="py-2 px-2 font-medium" title="Puntos de desarrollo (Story Points)">Dev</th>
+            <th className="py-2 px-2 font-medium" title="Puntos de QA (Effort QA)">QA</th>
             <th className="py-2 px-2 font-medium">Cumpl.</th>
             <th className="py-2 pl-2 font-medium">Avance</th>
           </tr>
@@ -29,7 +30,8 @@ export default function ResponsableTable({ data }: { data: ResponsableItem[] }) 
                   </span>
                 </div>
               </td>
-              <td className="py-2 px-2 text-slate-400">{d.storyPoints}</td>
+              <td className="py-2 px-2 font-medium text-sky-300">{d.storyPoints}</td>
+              <td className="py-2 px-2 font-medium text-amber-300">{d.qaPoints}</td>
               <td className="py-2 px-2 text-slate-400">{d.cumplidas}</td>
               <td className="py-2 pl-2 text-slate-300">{(d.avance * 100).toFixed(0)}%</td>
             </tr>

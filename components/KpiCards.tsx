@@ -36,7 +36,7 @@ export default function KpiCards({ k }: { k: Kpis }) {
   const pct = (n: number) => `${(n * 100).toFixed(0)}%`;
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-      <Kpi icon={<Layers size={16} />} label="HU totales" value={String(k.totalHU)} hint={`${k.storyPoints} story points`} />
+      <Kpi icon={<Layers size={16} />} label="HU totales" value={String(k.totalHU)} hint={`${k.devPoints} SP dev · ${k.qaPoints} QA`} />
       <Kpi
         icon={<GaugeCircle size={16} />}
         label="Avance ponderado"

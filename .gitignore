@@ -6,4 +6,4 @@
 *.pem
 .env*
 .vercel
-next-env.d.ts.bak
+next-env.d.ts

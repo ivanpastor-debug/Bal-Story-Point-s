@@ -6,7 +6,7 @@ import { FASE_COLOR, findEtapa } from "@/lib/etapas";
 import { orderByEtapa } from "@/lib/metrics";
 import { ArrowUpDown, Search } from "lucide-react";
 
-type SortKey = "etapa" | "pct" | "cycle" | "sp";
+type SortKey = "etapa" | "pct" | "cycle" | "sp" | "qa";
 
 export default function HuTable({ hu }: { hu: HU[] }) {
   const [q, setQ] = useState("");
@@ -27,6 +27,8 @@ export default function HuTable({ hu }: { hu: HU[] }) {
           return ((a.cycleEtapaActualDias ?? 0) - (b.cycleEtapaActualDias ?? 0)) * dir;
         case "sp":
           return ((a.storyPoints ?? 0) - (b.storyPoints ?? 0)) * dir;
+        case "qa":
+          return ((a.effortQA ?? 0) - (b.effortQA ?? 0)) * dir;
         default:
           return orderByEtapa(a.etapaActual, b.etapaActual) * dir;
       }
@@ -72,7 +74,8 @@ export default function HuTable({ hu }: { hu: HU[] }) {
               <Th k="etapa">Etapa actual</Th>
               <Th k="pct" className="text-right">Avance</Th>
               <Th k="cycle" className="text-right">Días etapa</Th>
-              <Th k="sp" className="text-right">SP</Th>
+              <Th k="sp" className="text-right">Dev</Th>
+              <Th k="qa" className="text-right">QA</Th>
               <th className="py-2 px-3 font-medium">Responsable</th>
             </tr>
           </thead>
@@ -108,7 +111,8 @@ export default function HuTable({ hu }: { hu: HU[] }) {
                   <td className="py-2 px-3 text-right text-slate-400">
                     {h.cycleEtapaActualDias != null ? h.cycleEtapaActualDias.toFixed(1) : "—"}
                   </td>
-                  <td className="py-2 px-3 text-right text-slate-400">{h.storyPoints ?? "—"}</td>
+                  <td className="py-2 px-3 text-right text-sky-300">{h.storyPoints ?? "—"}</td>
+                  <td className="py-2 px-3 text-right text-amber-300">{h.effortQA ?? "—"}</td>
                   <td className="py-2 px-3 text-slate-400">
                     <span className="line-clamp-1 max-w-[160px]" title={h.responsable}>
                       {h.responsable}

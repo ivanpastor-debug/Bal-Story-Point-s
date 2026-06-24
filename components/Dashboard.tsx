@@ -8,6 +8,7 @@ import {
   computeFases,
   computeKpis,
   computePipeline,
+  computePuntosFuncion,
   computeResponsables,
 } from "@/lib/metrics";
 import KpiCards from "./KpiCards";
@@ -18,6 +19,7 @@ import BottleneckChart from "./BottleneckChart";
 import ResponsableTable from "./ResponsableTable";
 import HuTable from "./HuTable";
 import Alerts from "./Alerts";
+import PuntosFuncion from "./PuntosFuncion";
 
 export default function Dashboard({ hu }: { hu: HU[] }) {
   const kpis = useMemo(() => computeKpis(hu), [hu]);
@@ -25,6 +27,7 @@ export default function Dashboard({ hu }: { hu: HU[] }) {
   const fases = useMemo(() => computeFases(hu), [hu]);
   const bottlenecks = useMemo(() => computeBottlenecks(hu), [hu]);
   const responsables = useMemo(() => computeResponsables(hu), [hu]);
+  const puntos = useMemo(() => computePuntosFuncion(hu), [hu]);
   const alertas = useMemo(() => computeAlertas(hu), [hu]);
 
   if (!hu.length) {
@@ -47,6 +50,13 @@ export default function Dashboard({ hu }: { hu: HU[] }) {
           <FaseDonut data={fases} />
         </Card>
       </div>
+
+      <Card
+        title="Puntos de función · Desarrollo vs QA"
+        subtitle="esfuerzo separado: Story Points (desarrollo) y Effort (QA)"
+      >
+        <PuntosFuncion data={puntos} />
+      </Card>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Cuellos de botella" subtitle="cycle time promedio por etapa (días)">
